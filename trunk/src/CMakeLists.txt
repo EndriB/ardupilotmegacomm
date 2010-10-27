@@ -8,31 +8,31 @@ if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch.stamp)
 	exec_program(touch ARGS ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch.stamp)
 endif()
 
-add_library(apmcomm SHARED 
+add_library(ardupilotmegacomm SHARED 
 	ArdupilotmegaHil.cpp
 	AsyncSerial.cpp
 	strlcpy.c
 	WProgram.cpp
 	APM_BinComm/APM_BinComm.cpp
 	)
-target_link_libraries(apmcomm ${Boost_LIBRARIES} )
+target_link_libraries(ardupilotmegacomm ${Boost_LIBRARIES} )
 
-set_target_properties(apmcomm PROPERTIES VERSION ${apmcomm_VERISON}
-	SOVERSION ${apmcomm_SOVERSION})
+set_target_properties(ardupilotmegacomm PROPERTIES VERSION ${ardupilotmegacomm_VERISON}
+	SOVERSION ${ardupilotmegacomm_SOVERSION})
 
-install(TARGETS apmcomm DESTINATION lib)
+install(TARGETS ardupilotmegacomm DESTINATION lib)
 install(FILES
 	ArdupilotmegaHil.hpp
 	AsyncSerial.hpp
 	strlcpy.h
 	WProgram.h
-	DESTINATION include/apmcomm
+	DESTINATION include/ardupilotmegacomm
 	)
 install(FILES
 	APM_BinComm/APM_BinComm.h
-	DESTINATION include/apmcomm/APM_BinComm
+	DESTINATION include/ardupilotmegacomm/APM_BinComm
 	)
 install(FILES
 	APM_BinComm/protocol/protocol.h
-	DESTINATION include/apmcomm/APM_BinComm/protocol
+	DESTINATION include/ardupilotmegacomm/APM_BinComm/protocol
 	)
