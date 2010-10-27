@@ -3,9 +3,8 @@ include_directories ( "${PROJECT_SOURCE_DIR}/src" ${Boost_INCLUDE_DIRS} )
 
 # apply patch to APM_BinComm if stamp not found
 if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch.stamp)
-	exec_program(pwd)
-	exec_program(echo ARGS Applying patch to ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm)
-	exec_program(patch ARGS -d ${CMAKE_CURRENT_SOURCE_DIR} -p0 -i ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch)
+	exec_program(patch ARGS -d ${CMAKE_CURRENT_SOURCE_DIR} -p0 -i 
+		${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch)
 	exec_program(touch ARGS ${CMAKE_CURRENT_SOURCE_DIR}/APM_BinComm.patch.stamp)
 endif()
 
