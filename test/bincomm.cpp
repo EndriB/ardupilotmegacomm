@@ -34,11 +34,11 @@ private:
 public:
 	BinComm comm;
 	int16_t roll,pitch;
-	uint16_t yaw;
+	int16_t yaw;
 	int32_t longitude, latitude;
 	int16_t altitude; 
-	uint16_t groundSpeed, groundCourse;
-	uint32_t timeOfWeek;
+	int16_t groundSpeed, groundCourse;
+	uint16_t timeOfWeek;
 
 	CommTest(const std::string & device, long int baud) :
 		serial(device,baud),
@@ -51,23 +51,23 @@ public:
 		int32_t latitude = 0, longitude = 0;
 		int16_t altitude = 0, groundSpeed = 0, groundCourse = 0;
 		uint16_t timeOfWeek = 0;
-		handlerTable[i].messageID = BinComm::msg_ATTITUDE;
+		handlerTable[i].messageID = BinComm::MSG_ATTITUDE;
 		handlerTable[i].handler = h_attitude;
 		handlerTable[i].arg = this;
 		i++;
 
-		handlerTable[i].messageID = BinComm::msg_SERVOS;
+		handlerTable[i].messageID = BinComm::MSG_SERVOS;
 		handlerTable[i].handler = h_servos;
 		handlerTable[i].arg = this;
 		i++;
 
-		handlerTable[i].messageID = BinComm::msg_LOCATION;
+		handlerTable[i].messageID = BinComm::MSG_LOCATION;
 		handlerTable[i].handler = h_location;
 		handlerTable[i].arg = this;
 		i++;
 
 		//signals end of handle table
-		handlerTable[i].messageID = BinComm::msg_NULL;
+		handlerTable[i].messageID = BinComm::MSG_NULL;
 	}
 	void update()
 	{

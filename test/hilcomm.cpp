@@ -23,7 +23,7 @@
 
 int main (int argc, char const* argv[])
 {
-	using namespace apmcomm;
+	using namespace ardupilotmegacomm;
 
 	if (argc != 3)
 	{
@@ -48,8 +48,8 @@ int main (int argc, char const* argv[])
 
 	while(1)
 	{
-		comm->write(x);
-		comm->read(u);
+		comm->receive();
+		comm->send();
 		comm->print();
 		usleep(1000000);
 	}

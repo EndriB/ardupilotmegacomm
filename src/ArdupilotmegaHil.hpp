@@ -22,7 +22,7 @@
 #include "AsyncSerial.hpp"
 #include <iostream>
 
-namespace apmcomm
+namespace ardupilotmegacomm
 {
 
 class ArdupilotmegaHil
@@ -71,8 +71,6 @@ public:
 
 	void send();
 	void receive();
-	void pack();
-	void unpack();
 	void print();
 
 	// simulator state
@@ -87,11 +85,11 @@ public:
 		double rollServo, pitchServo, throttleServo, rudderServo;
    		double wpDistance, bearingError, nextWpAlt, energyError;
 		int wpIndex, controlMode;	
-	} apmOutput;
+	} ardupilotmegaOutput;
 
 };
 
-} // apmcomm
+} // ardupilotmegacomm
 
 #endif
 
