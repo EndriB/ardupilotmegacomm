@@ -1,0 +1,11 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+Standardizes ArduPilotMega communication using the APM_BinComm library wrapped for host-side C++.
+
+
+= Details =
+
+Features
+  * Automatically syncs with svn from Arducopter APM_BinComm library.
