@@ -18,12 +18,12 @@
 
 #include "ArdupilotmegaHil.hpp"
 
-namespace apmcomm
+namespace ardupilotmegacomm
 {
 
 ArdupilotmegaHil::ArdupilotmegaHil(const std::string & device, const int baudRate) :
 	serial(device,baudRate), headerCount(0), headerFound(false),
-	message(), header(), simState(), apmOutput()
+	message(), header(), simState(), ardupilotmegaOutput()
 {
 	if (serial.errorStatus())
 	{
@@ -40,7 +40,7 @@ ArdupilotmegaHil::ArdupilotmegaHil(const std::string & device, const int baudRat
 	headerOut.push_back(0x64);
 }
 	
-void ArdupilotmegaHil::send(HilToApm & msg)
+void ArdupilotmegaHil::receive()
 {
 	std::vector<char> buffer = serial.read();
 
@@ -74,7 +74,6 @@ void ArdupilotmegaHil::send(HilToApm & msg)
 			std::cout << "message found" << std::endl;
 			// message complete, read into packet
 			for (int i=0;i<packetLength;i++) fromApm.bytes[i] = message[i];
-			unpack();
 			print();
 			headerFound = false;
 			//std::cout << "message emptying" << std::endl;
@@ -87,13 +86,12 @@ void ArdupilotmegaHil::send()
 {
 	// add header
 	std::vector<char> messageOut;
-	pack();
 	for (int i=0;i<headerOut.size();i++) messageOut.push_back(headerOut[i]);
 
 	// add xplane packet
 	messageOut.push_back(sizeof(MsgToApm));
 	messageOut.push_back(xplanePacketID);
-	for (int i=0;i<sizeof(MsgToApm)) messageOut.push_back(toApm.bytes[i]);
+	for (int i=0;i<sizeof(MsgToApm);i++) messageOut.push_back(toApm.bytes[i]);
 
 	// compute checksum
 	uint8_t ck_a = 0, ck_b = 0;
@@ -125,26 +123,6 @@ void ArdupilotmegaHil::print()
 		<< std::endl;
 }
 
-void ArdupilotmegaHil::pack()
-{
-	toApm.msg.roll = roll*180.0/M_PI*100;
-	toApm.msg.pitch = pitch*180.0/M_PI*100;
-	toApm.msg.heading = heading*180.0/M_PI*100;
-	toApm.msg.airspeed = airspeed*3.2808399*100;
-}
-
-void ArdupilotmegaHil::unpack()
-{
-	rollServo = fromApm.msg.rollServo;
-	pitchServo = fromApm.msg.pitchServo;
-	throttleServo = fromApm.msg.throttleServo;
-	rudderServo = fromApm.msg.rudderServo;
-	wpDistance = fromApm.msg.bearingError;
-	wpDistance = fromApm.msg.nextWpAlt;
-	wpDistance = fromApm.msg.energyError;
-	wpDistance = fromApm.msg.controlMode;
-}
-
-} // apmcomm
+} // ardupilotmegacomm
 
 // vim:ts=4:sw=4
