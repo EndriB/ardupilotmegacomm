@@ -26,3 +26,9 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 # subdirectories
 add_subdirectory(src)
 add_subdirectory(test)
+
+# pkgconfig
+install(FILES
+	ardupilotmegacomm.pc
+	DESTINATION /usr/lib/pkgconfig
+	)
