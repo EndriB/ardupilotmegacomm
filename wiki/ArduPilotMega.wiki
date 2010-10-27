@@ -1,4 +1,4 @@
-#summary ardupilotmegacomm
+#summary A brief overview of ardupilotmegacomm
 
 = Introduction =
 
