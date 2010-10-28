@@ -1,0 +1,5 @@
+Name: apmcomm
+Description: The apmcomm library
+Version: 0.0.0
+Cflags: -I/usr/include/apmcomm
+Libs: -L/usr/lib -lapmcomm
