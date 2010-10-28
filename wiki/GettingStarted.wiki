@@ -1,11 +1,11 @@
 #summary Getting started with the ardupilotmegacomm library.
 
 = Compiling the library =
-Dependencies
+Dependencies:
   * Boot > 1.40 (for asio serial), headers, boost-thread-mt, boost-system-mt 
-Build System
+Build System:
   * CMake > 2.60 
-Build Steps
+Build Steps:
   * svn checkout http://ardupilotmegacomm.googlecode.com/svn/trunk/ ardupilotmegacomm-read-only
   * go to the ardupilotmegacomm-read-only directory
   * create a build directory and launch cmake from it, then make: 
@@ -43,7 +43,7 @@ Install Option 1: Build from source
 Install Option 2: Use a package
   * Linux: download .deb file, dpkg -i ardupilotmegacomm-0.0.1.deb
   * Windows: don't have a packaged yet
-How to build against it
+How to build against it:
   * Manual
     * LDFLAGS : -lardupilotmegacomm
     * CPPFLAGS : -I/usr/include/ardupilotmegacomm
@@ -51,5 +51,8 @@ How to build against it
     * ardupilotmegacomm.pc included in install
 
 = Packaging =
-Linux: cpack -G DEB
-Windows: cpack -G NSIS (If someone on windows can make a package for 0.0.1 it would be much appreciated.)
+Linux:
+  * cpack -G DEB
+
+Windows:
+  * cpack -G NSIS (If someone on windows can make a package for 0.0.1 it would be much appreciated.)
