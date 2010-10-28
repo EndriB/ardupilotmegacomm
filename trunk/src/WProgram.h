@@ -43,7 +43,6 @@ public:
 	int available();
 private:
 	BufferedAsyncSerial * _serial;
-	char data;
 };
 
 extern long int millis();

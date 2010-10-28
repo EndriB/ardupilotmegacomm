@@ -27,9 +27,15 @@ namespace ardupilotmegacomm
 
 class ArdupilotmegaHil
 {
-
 private:
+	BufferedAsyncSerial serial;
+	uint8_t receiveState;
+	uint8_t payloadCount;
+	uint8_t payload[18];
+	static const uint8_t gpsImuHeader[];
+	static const uint8_t xplanePacketID = 0x04;
 
+public:
 	struct HilFromApm
 	{
 		int16_t rollServo, pitchServo, throttleServo;
@@ -55,39 +61,15 @@ private:
 		uint8_t bytes[];
 	} toApm;
 
-public:
-	BufferedAsyncSerial serial;
-	int headerCount;
-	bool headerFound;
-	std::vector<char> message;
-	std::vector<char> header;
-	std::vector<char> headerOut;
-	std::vector<char> messageOut;
-
-	static const int packetLength = 18;
-	static const uint8_t xplanePacketID = 0x04;
 
 	ArdupilotmegaHil(const std::string & device, const int baudRate);
 
 	void send();
 	void receive();
 	void print();
-
-	// simulator state
-	struct SimState
-	{
-		double roll, pitch, heading, airspeed;
-	} simState;
-
-	// ardupilotmega output
-	struct ApmOutput
-	{
-		double rollServo, pitchServo, throttleServo, rudderServo;
-   		double wpDistance, bearingError, nextWpAlt, energyError;
-		int wpIndex, controlMode;	
-	} ardupilotmegaOutput;
-
+	void unpack();
 };
+
 
 } // ardupilotmegacomm
 

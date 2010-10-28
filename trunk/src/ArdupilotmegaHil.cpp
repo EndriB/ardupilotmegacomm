@@ -21,72 +21,76 @@
 namespace ardupilotmegacomm
 {
 
+const uint8_t ArdupilotmegaHil::gpsImuHeader[] = {'D','I','Y','d'};
+
 ArdupilotmegaHil::ArdupilotmegaHil(const std::string & device, const int baudRate) :
-	serial(device,baudRate), headerCount(0), headerFound(false),
-	message(), header(), simState(), ardupilotmegaOutput()
+	serial(device,baudRate), receiveState(0), payloadCount(0), fromApm(), toApm()
 {
 	if (serial.errorStatus())
 	{
 		throw std::runtime_error("ArdupilotmegaHil: failed to connect to serial port");
 		return;
 	}
-	header.push_back('A');
-	header.push_back('A');
-	header.push_back('A');
-
-	headerOut.push_back(0x44);
-	headerOut.push_back(0x49);
-	headerOut.push_back(0x59);
-	headerOut.push_back(0x64);
 }
 	
 void ArdupilotmegaHil::receive()
 {
-	std::vector<char> buffer = serial.read();
+	char data;
+	//std::cout << "serial available: " << serial.available() << std::endl;
+	if (serial.available())
+		serial.read(&data,1);
+	else 
+		return;
 
-	int i = 0;
-	std::cout << "buffer size: " << buffer.size() << std::endl;
-
-	// look for header
-	if (!headerFound)
+	switch(receiveState)
 	{
-		while(i<buffer.size())
-		{
-			if(buffer[i++] == header[headerCount]) headerCount++;
-			else headerCount = 0;
-
-			if (headerCount >= header.size())
+		case 0:
+		case 1:
+		case 2:
+			if (data == 'A')
+				receiveState++;
+			else
+				receiveState=0;
+			break;
+		case 3:
+			if (payloadCount >= sizeof(payload)) 
 			{
-				headerCount = 0;
-				headerFound = true;
-				break;
+				payloadCount = 0;
+				receiveState=0;
 			}
-		}
+			else
+			{
+				payload[payloadCount++] = data;
+				if (payloadCount == sizeof(payload))
+					receiveState++;
+			}
+			break;
+		case 4:
+			if (data == '\r')
+				receiveState++;
+			else
+				receiveState=0;
+			break;
+		case 5:
+			if (data == '\n')
+			{
+				unpack();
+				print();
+			}
+			receiveState=0;
 	}
+}
 
-	// read message
-	if (headerFound)
-	{
-		std::cout << "header found" << std::endl;
-		while(i<buffer.size() && i<packetLength) message.push_back(buffer[i++]);
-		if (message.size() == packetLength)
-		{
-			std::cout << "message found" << std::endl;
-			// message complete, read into packet
-			for (int i=0;i<packetLength;i++) fromApm.bytes[i] = message[i];
-			print();
-			headerFound = false;
-			//std::cout << "message emptying" << std::endl;
-			message.clear();
-		}
-	}
+void ArdupilotmegaHil::unpack()
+{
+	for (int i=0;i<sizeof(MsgFromApm);i++) fromApm.bytes[i] = payload[i];
 }
 
 void ArdupilotmegaHil::send()
 {
 	// add header
 	std::vector<char> messageOut;
-	for (int i=0;i<headerOut.size();i++) messageOut.push_back(headerOut[i]);
+	for (int i=0;i<sizeof(gpsImuHeader);i++) messageOut.push_back(gpsImuHeader[i]);
 
 	// add xplane packet
 	messageOut.push_back(sizeof(MsgToApm));
@@ -95,7 +99,7 @@ void ArdupilotmegaHil::send()
 
 	// compute checksum
 	uint8_t ck_a = 0, ck_b = 0;
-	for (int i=headerOut.size();i<messageOut.size();i++)
+	for (int i=sizeof(gpsImuHeader);i<messageOut.size();i++)
 	{
 		ck_a += messageOut[i];
 		ck_b += ck_a; 
@@ -110,10 +114,10 @@ void ArdupilotmegaHil::send()
 void ArdupilotmegaHil::print()
 {
 	std::cout
-		<< "\nroll:\t\t\t" << fromApm.msg.rollServo
-		<< "\npitch:\t\t\t" << fromApm.msg.pitchServo
-		<< "\nthrottle:\t\t" << fromApm.msg.throttleServo
-		<< "\nrudder:\t\t\t" << fromApm.msg.rudderServo
+		<< "\nroll servo:\t\t\t" << fromApm.msg.rollServo
+		<< "\npitch servo:\t\t\t" << fromApm.msg.pitchServo
+		<< "\nthrottle servo:\t\t" << fromApm.msg.throttleServo
+		<< "\nrudder servo:\t\t\t" << fromApm.msg.rudderServo
 		<< "\nwaypoint distance:\t" << fromApm.msg.wpDistance
 		<< "\nbearing errror:\t\t" << fromApm.msg.bearingError
 		<< "\nnext waypoint alt:\t" << fromApm.msg.nextWpAlt
