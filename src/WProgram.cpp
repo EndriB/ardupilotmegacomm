@@ -30,9 +30,15 @@
 
 Stream::Stream(BufferedAsyncSerial * serial) : _serial(serial)
 {
+	if (_serial->errorStatus())
+	{
+		throw std::runtime_error("WProgram: failed to connect to serial port");
+		return;
+	}
 }
 
 uint8_t Stream::read() {
+	char data; 	
 	_serial->read(&data,1);
 	//std::cout << "avail: " << available() << std::endl;
 	return data;

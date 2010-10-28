@@ -48,10 +48,9 @@ int main (int argc, char const* argv[])
 
 	while(1)
 	{
-		comm->receive();
 		comm->send();
-		comm->print();
-		usleep(1000000);
+		comm->receive();
+		usleep(500);
 	}
 	delete comm;
 	return 0;
