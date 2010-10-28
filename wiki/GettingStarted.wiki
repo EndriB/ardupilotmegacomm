@@ -1,8 +1,6 @@
 #summary Getting started with the ardupilotmegacomm library.
 
-= Introduction =
-
-Compiling the library:
+= Compiling the library =
   * Dependencies
     * Boot > 1.40 (for asio serial), headers, boost-thread-mt, boost-system-mt 
   * Build System
@@ -13,23 +11,6 @@ Compiling the library:
     * create a build directory and launch cmake from it, then make: 
     * mkdir build; cd build; cmake ..;make
     * try out the test program
-
-Packaging:
-  * Linux: cpack -G DEB
-  * Windows: cpack -G NSIS (If someone on windows can make a package for 0.0.1 would be much appreciated.)
-
-Using the library:
-  * Install Option 1: Build from source
-    * In the build directory build the code and then sudo make install.
-  * Install Option 2: Use a package
-    * Linux: download .deb file, dpkg -i ardupilotmegacomm-0.0.1.deb
-    * Windows: don't have a packaged yet (if someone on windows has packaged it with nsis let me know and I'll post it)
-  * How to build against it
-    * Manual
-      * LDFLAGS : -lardupilotmegacomm
-      * CPPFLAGS : /usr/include/ardupilotmegacomm
-    * pkg-config
-     * ardupilotmegacomm.pc included in install
 
 = Hardware in the Loop Walkthrough =
 
@@ -55,3 +36,20 @@ Install latest ardupilot-mega release from svn onto ardupilotmega board:
 Execute the test program:
   
     * ./test/bincomm /dev/ttyUSB0 38400
+
+= Using the library for your project = 
+  * Install Option 1: Build from source
+    * In the build directory build the code and then sudo make install.
+  * Install Option 2: Use a package
+    * Linux: download .deb file, dpkg -i ardupilotmegacomm-0.0.1.deb
+    * Windows: don't have a packaged yet
+  * How to build against it
+    * Manual
+      * LDFLAGS : -lardupilotmegacomm
+      * CPPFLAGS : -I/usr/include/ardupilotmegacomm
+    * pkg-config
+     * ardupilotmegacomm.pc included in install
+
+= Packaging =
+  * Linux: cpack -G DEB
+  * Windows: cpack -G NSIS (If someone on windows can make a package for 0.0.1 it would be much appreciated.)
