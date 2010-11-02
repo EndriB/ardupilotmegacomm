@@ -1,5 +1,5 @@
-Name: apmcomm
-Description: The apmcomm library
+Name: ardupilotmegacomm
+Description: The ardupilotmegacomm library
 Version: 0.0.2
-Cflags: -I/usr/include/apmcomm
-Libs: -L/usr/lib -lapmcomm
+Cflags: -I/usr/include/ardupilotmegacomm
+Libs: -L/usr/lib -lardupilotmegacomm

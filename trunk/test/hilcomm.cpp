@@ -50,6 +50,7 @@ int main (int argc, char const* argv[])
 	{
 		comm->send();
 		comm->receive();
+		comm->print();
 		usleep(500);
 	}
 	delete comm;
