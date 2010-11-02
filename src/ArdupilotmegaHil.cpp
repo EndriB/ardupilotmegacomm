@@ -35,49 +35,48 @@ ArdupilotmegaHil::ArdupilotmegaHil(const std::string & device, const int baudRat
 	
 void ArdupilotmegaHil::receive()
 {
-	char data;
-	//std::cout << "serial available: " << serial.available() << std::endl;
-	if (serial.available())
-		serial.read(&data,1);
-	else 
-		return;
+	std::vector<char> data = serial.read();
 
-	switch(receiveState)
+	for(int i=0;i<data.size();i++)
 	{
-		case 0:
-		case 1:
-		case 2:
-			if (data == 'A')
-				receiveState++;
-			else
-				receiveState=0;
-			break;
-		case 3:
-			if (payloadCount >= sizeof(payload)) 
-			{
-				payloadCount = 0;
-				receiveState=0;
-			}
-			else
-			{
-				payload[payloadCount++] = data;
-				if (payloadCount == sizeof(payload))
+
+		switch(receiveState)
+		{
+			case 0:
+			case 1:
+			case 2:
+				if (data[i] == 'A')
 					receiveState++;
-			}
-			break;
-		case 4:
-			if (data == '\r')
-				receiveState++;
-			else
+				else
+					receiveState=0;
+				break;
+			case 3:
+				if (payloadCount >= sizeof(payload)) 
+				{
+					payloadCount = 0;
+					receiveState=0;
+				}
+				else
+				{
+					payload[payloadCount++] = data[i];
+					if (payloadCount == sizeof(payload))
+						receiveState++;
+				}
+				break;
+			case 4:
+				if (data[i] == '\r')
+					receiveState++;
+				else
+					receiveState=0;
+				break;
+			case 5:
+				if (data[i] == '\n')
+				{
+					unpack();
+					//print();
+				}
 				receiveState=0;
-			break;
-		case 5:
-			if (data == '\n')
-			{
-				unpack();
-				print();
-			}
-			receiveState=0;
+		}
 	}
 }
 
