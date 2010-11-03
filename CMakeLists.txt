@@ -23,6 +23,9 @@ find_package(Boost 1.40 REQUIRED COMPONENTS thread-mt system-mt)
 link_directories( ${Boost_LIBRARIES_DIRS} )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
+# the install_name directory component to be used when installing
+set(CMAKE_INSTALL_NAME_DIR ${LIB_DIR})
+
 # subdirectories
 add_subdirectory(src)
 add_subdirectory(test)
