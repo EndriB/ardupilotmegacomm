@@ -1,6 +1,12 @@
 cmake_minimum_required (VERSION 2.6)
 project (ardupilotmegacomm)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 # The version number.
 set(ardupilotmegacomm_VERSION_MAJOR 0)
 set(ardupilotmegacomm_VERSION_MINOR 0)
