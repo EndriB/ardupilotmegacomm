@@ -24,7 +24,8 @@ link_directories( ${Boost_LIBRARIES_DIRS} )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
 # the install_name directory component to be used when installing
-set(CMAKE_INSTALL_NAME_DIR ${LIB_DIR})
+set(CMAKE_INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+message(STATUS "install_name ${CMAKE_INSTALL_NAME_DIR}")
 
 # subdirectories
 add_subdirectory(src)
