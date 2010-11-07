@@ -21,9 +21,7 @@
 #include <iostream>
 
 // handlers
-void h_attitude(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
-void h_location(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
-void h_radio(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
+void handler(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
 
 class CommTest
 {
@@ -35,34 +33,23 @@ public:
 	BinComm comm;
 	int16_t roll,pitch;
 	uint16_t yaw;
-	int32_t longitude, latitude;
-	int16_t altitude; 
+	int32_t longitude, latitude, altitude; 
 	uint16_t groundSpeed, groundCourse;
 	uint32_t timeOfWeek;
+	uint8_t flightMode;
+	uint16_t timeStamp, batteryVoltage, commandIndex;
 
 	CommTest(const std::string & device, long int baud) :
 		serial(device,baud),
 		stream(&serial),
 		comm(handlerTable,&stream), roll(), pitch(), yaw(),
 		longitude(), latitude(), altitude(), groundSpeed(),
-		groundCourse(), timeOfWeek()
+		groundCourse(), timeOfWeek(), flightMode(), timeStamp(),
+		batteryVoltage(), commandIndex()
 	{
 		int i=0;
-		int32_t latitude = 0, longitude = 0;
-		int16_t altitude = 0, groundSpeed = 0, groundCourse = 0;
-		uint16_t timeOfWeek = 0;
-		handlerTable[i].messageID = BinComm::MSG_ATTITUDE;
-		handlerTable[i].handler = h_attitude;
-		handlerTable[i].arg = this;
-		i++;
-
-		handlerTable[i].messageID = BinComm::MSG_RADIO_OUT;
-		handlerTable[i].handler = h_radio;
-		handlerTable[i].arg = this;
-		i++;
-
-		handlerTable[i].messageID = BinComm::MSG_LOCATION;
-		handlerTable[i].handler = h_location;
+		handlerTable[i].messageID = BinComm::MSG_ANY;
+		handlerTable[i].handler = handler;
 		handlerTable[i].arg = this;
 		i++;
 
@@ -75,41 +62,55 @@ public:
 	}
 };
 
-void h_attitude(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
+void handler(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
 {
-	CommTest * commTest = (CommTest*)arg;
-	commTest->comm.unpack_msg_attitude(commTest->roll,commTest->pitch,commTest->yaw);
 	// displays data when you receive a message, but you should access the data
 	// for your ground station etc. via the public attributes of CommTest
-	std::cout << "roll, pitch, yaw:\t" << commTest->roll << "\t" << commTest->pitch 
-		<< "\t" << commTest->yaw << std::endl;
-}
-
-void h_location(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
-{
 	CommTest * commTest = (CommTest*)arg;
-		commTest->comm.unpack_msg_location(commTest->latitude,commTest->longitude,
-		commTest->altitude,commTest->groundSpeed,commTest->groundCourse,commTest->timeOfWeek);
-	// displays data when you receive a message, but you should access the data
-	// for your ground station etc. via the public attributes of CommTest
-	std::cout << "latitude, longitude, altitude:\t" << commTest->latitude << "\t" 
-		<< commTest->longitude << "\t" << commTest->altitude << std::endl;
-	std::cout << "ground speed, ground course, time of week:\t" << commTest->groundSpeed << "\t" 
-		<< commTest->groundCourse << "\t" << commTest->timeOfWeek << std::endl;
-}
+	switch(messageId)
+	{
+		case BinComm::MSG_HEARTBEAT:
+			std::cout << "MSG_HEARTBEAT" << std::endl;
+			commTest->comm.unpack_msg_heartbeat(commTest->flightMode,commTest->timeStamp,
+					commTest->batteryVoltage,commTest->commandIndex);
+			std::cout << "\tflightMode: " << int(commTest->flightMode) << std::endl;
+			std::cout << "\tbatteryVoltage: " << commTest->batteryVoltage << std::endl;
+			break;
 
-void h_radio(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
-{
-	uint16_t radio[8];
-	CommTest * commTest = (CommTest*)arg;
-		commTest->comm.unpack_msg_radio_out(radio);
-	// displays data when you receive a message, but you should access the data
-	// for your ground station etc. via the public attributes of CommTest
-	std::cout << "radio:\t";
-	for (int i=0;i<8;i++) std::cout << radio[i] << "\t";
-	std::cout << std::endl;
-}
+		case BinComm::MSG_ACKNOWLEDGE:
+			std::cout << "MSG_ACKNOWLEDGE" << std::endl;
+			break;
 
+		case BinComm::MSG_ATTITUDE:
+			std::cout << "MSG_ATTITUDE" << std::endl;
+			commTest->comm.unpack_msg_attitude(commTest->roll,commTest->pitch,commTest->yaw);
+						std::cout << "\troll, pitch, yaw:\t" << commTest->roll << "\t" << commTest->pitch 
+				<< "\t" << commTest->yaw << std::endl;
+			break;
+
+		case BinComm::MSG_LOCATION:
+			std::cout << "MSG_LOCATION" << std::endl;
+			commTest->comm.unpack_msg_location(commTest->latitude,commTest->longitude,
+			commTest->altitude,commTest->groundSpeed,commTest->groundCourse,commTest->timeOfWeek);
+			std::cout << "\tlatitude, longitude, altitude:\t" << commTest->latitude/1e7 << "\t" 
+				<< commTest->longitude/1e7 << "\t" << commTest->altitude/100 << std::endl;
+			std::cout << "\tground speed, ground course, time of week:\t" << commTest->groundSpeed << "\t" 
+				<< commTest->groundCourse << "\t" << commTest->timeOfWeek << std::endl;
+			break;
+
+		case BinComm::MSG_RADIO_OUT:
+			std::cout << "MSG_RADIO_OUT" << std::endl;
+			uint16_t radio[8];
+			commTest->comm.unpack_msg_radio_out(radio);
+			std::cout << "\tradio:\t";
+			for (int i=0;i<8;i++) std::cout << radio[i] << "\t";
+			std::cout << std::endl;
+			break;
+
+		default:
+			std::cout << "unhandled message" << std::endl;
+	}
+}
 
 int main (int argc, char const* argv[])
 {
@@ -123,10 +124,17 @@ int main (int argc, char const* argv[])
 	std::cout << "device: " << device << std::endl;
 	std::cout << "baud: " << baud << std::endl;
 	CommTest test(device,baud);
+	int i = 0;
 	while(1)
 	{
 		test.update();
-		usleep(1000);
+		if (i++ > 100)	
+		{
+			std::cout << "sending command upload" << std::endl;
+			test.comm.send_msg_command_upload(0,1,1,0x10,0,1,1,1);
+			i=0;
+		}
+		usleep(10000);
 	}
 	return 0;
 }
