@@ -23,7 +23,7 @@
 // handlers
 void h_attitude(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
 void h_location(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
-void h_servos(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
+void h_radio(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData);
 
 class CommTest
 {
@@ -34,11 +34,11 @@ private:
 public:
 	BinComm comm;
 	int16_t roll,pitch;
-	int16_t yaw;
+	uint16_t yaw;
 	int32_t longitude, latitude;
 	int16_t altitude; 
-	int16_t groundSpeed, groundCourse;
-	uint16_t timeOfWeek;
+	uint16_t groundSpeed, groundCourse;
+	uint32_t timeOfWeek;
 
 	CommTest(const std::string & device, long int baud) :
 		serial(device,baud),
@@ -56,8 +56,8 @@ public:
 		handlerTable[i].arg = this;
 		i++;
 
-		handlerTable[i].messageID = BinComm::MSG_SERVOS;
-		handlerTable[i].handler = h_servos;
+		handlerTable[i].messageID = BinComm::MSG_RADIO_OUT;
+		handlerTable[i].handler = h_radio;
 		handlerTable[i].arg = this;
 		i++;
 
@@ -98,16 +98,15 @@ void h_location(void * arg, uint8_t messageId, uint8_t messageVersion, void * me
 		<< commTest->groundCourse << "\t" << commTest->timeOfWeek << std::endl;
 }
 
-void h_servos(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
+void h_radio(void * arg, uint8_t messageId, uint8_t messageVersion, void * messageData)
 {
-	int16_t servos[8];
+	uint16_t radio[8];
 	CommTest * commTest = (CommTest*)arg;
-		commTest->comm.unpack_msg_servos(servos[0],servos[1],servos[2],servos[3],
-				servos[4],servos[5],servos[6],servos[7]);
+		commTest->comm.unpack_msg_radio_out(radio);
 	// displays data when you receive a message, but you should access the data
 	// for your ground station etc. via the public attributes of CommTest
-	std::cout << "servos:\t";
-	for (int i=0;i<8;i++) std::cout << servos[i] << "\t";
+	std::cout << "radio:\t";
+	for (int i=0;i<8;i++) std::cout << radio[i] << "\t";
 	std::cout << std::endl;
 }
 
