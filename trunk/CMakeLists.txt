@@ -9,7 +9,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 # The version number.
 set(ardupilotmegacomm_VERSION_MAJOR 0)
-set(ardupilotmegacomm_VERSION_MINOR 1)
+set(ardupilotmegacomm_VERSION_MINOR 2)
 set(ardupilotmegacomm_VERSION_PATCH 0)
 set(ardupilotmegacomm_SOVERSION 0)
 
