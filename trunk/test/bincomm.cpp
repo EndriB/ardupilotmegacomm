@@ -130,8 +130,15 @@ int main (int argc, char const* argv[])
 		test.update();
 		if (i++ > 100)	
 		{
-			std::cout << "sending command upload" << std::endl;
-			test.comm.send_msg_command_upload(0,1,1,0x10,0,1,1,1);
+			std::cout << "sending flightplan" << std::endl;
+			uint8_t action = 1; // add now
+			uint16_t length = 10;
+			uint8_t commandID = 0x10;
+			for (uint16_t j=0;j<length;j++)
+			{
+				test.comm.send_msg_command_upload(1,j,length,commandID,0,
+						j*1111111,j*1111111,j*1111111);
+			}
 			i=0;
 		}
 		usleep(10000);
