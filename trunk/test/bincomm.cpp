@@ -128,19 +128,20 @@ int main (int argc, char const* argv[])
 	while(1)
 	{
 		test.update();
-		if (i++ > 100)	
+		//std::cout << "i: " << i << std::endl;
+		if (i >500)
 		{
 			std::cout << "sending flightplan" << std::endl;
-			uint8_t action = 1; // add now
-			uint16_t length = 10;
+			uint8_t action = 0; // execute immed. 1, insert in list 0
+			uint16_t length = 3;
 			uint8_t commandID = 0x10;
 			for (uint16_t j=0;j<length;j++)
 			{
-				test.comm.send_msg_command_upload(1,j,length,commandID,0,
-						j*1111111,j*1111111,j*1111111);
+				test.comm.send_msg_command_upload(1,j,length,commandID,0,j,j,j);
 			}
-			i=0;
+			i = 0;
 		}
+		i++;
 		usleep(10000);
 	}
 	return 0;
