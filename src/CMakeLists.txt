@@ -4,7 +4,6 @@ include_directories ( "${PROJECT_SOURCE_DIR}/src" ${Boost_INCLUDE_DIRS} )
 add_library(ardupilotmegacomm SHARED 
 	ArdupilotmegaHil.cpp
 	AsyncSerial.cpp
-	strlcpy.c
 	WProgram.cpp
 	APM_BinComm/APM_BinComm.cpp
 	)
@@ -17,7 +16,6 @@ install(TARGETS ardupilotmegacomm DESTINATION lib)
 install(FILES
 	ArdupilotmegaHil.hpp
 	AsyncSerial.hpp
-	strlcpy.h
 	WProgram.h
 	DESTINATION include/ardupilotmegacomm
 	)
