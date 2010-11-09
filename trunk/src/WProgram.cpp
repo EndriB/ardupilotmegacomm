@@ -56,7 +56,7 @@ int Stream::available() {
 extern long int millis()
 {
 	using namespace boost::posix_time;
-	ptime start = microsec_clock::universal_time();
+	static ptime start = microsec_clock::universal_time();
 	time_duration diff = microsec_clock::universal_time() - start;
 	long int elapsed = diff.total_milliseconds();
 	return elapsed;
