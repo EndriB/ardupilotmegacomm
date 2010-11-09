@@ -38,6 +38,13 @@ public:
 	uint32_t timeOfWeek;
 	uint8_t flightMode;
 	uint16_t timeStamp, batteryVoltage, commandIndex;
+	uint8_t severity;
+	char status[50];
+	uint32_t interval;
+	uint16_t mainLoopCycles;
+	uint8_t mainLoopCycleTime, gyroSaturationCount, adcConstraintCount, renormSqrtCount,
+			renormBlowupCount, gpsFixCount;
+	uint16_t imuHealth, gcsMessageCount;
 
 	CommTest(const std::string & device, long int baud) :
 		serial(device,baud),
@@ -69,40 +76,86 @@ void handler(void * arg, uint8_t messageId, uint8_t messageVersion, void * messa
 	CommTest * commTest = (CommTest*)arg;
 	switch(messageId)
 	{
+		case BinComm::MSG_PERF_REPORT:
+			commTest->comm.unpack_msg_perf_report(commTest->interval,commTest->mainLoopCycles,
+					commTest->mainLoopCycleTime,commTest->gyroSaturationCount,
+					commTest->adcConstraintCount,commTest->renormSqrtCount,
+					commTest->renormBlowupCount,commTest->gpsFixCount,
+					commTest->imuHealth,commTest->gcsMessageCount);
+			std::cout << "perf report"
+				<< "\n\tmain loop cycle time: " << int(commTest->mainLoopCycleTime)
+				<< "\n\tadc constraintt count: " << int(commTest->adcConstraintCount)
+				<< "\n\trenorm sqrt count: " << int(commTest->renormSqrtCount)
+				<< "\n\trenorm blowup count: " << int(commTest->renormBlowupCount)
+				<< "\n\tgps fix count: " << int(commTest->gpsFixCount)
+				<< "\n\timu health: " << commTest->imuHealth
+				<< "\n\tgcs message count: " << commTest->gcsMessageCount
+				<< std::endl;
+			break;
+
+		case BinComm::MSG_COMMAND_LIST:
+			uint16_t itemNumber, listLength;
+			uint8_t commandID;
+			uint8_t p1;
+			int32_t p2,p3,p4;
+			commTest->comm.unpack_msg_command_list(itemNumber,
+					listLength,commandID,p1,p2,p3,p4);
+			std::cout << "command list: length(" << listLength
+				<< ")\titem(" << itemNumber
+				<< ")\tp1(" << int(p1)
+				<< ")\tlat(" << p2/1.0e7
+				<< ")\tlon(" << p3/1.0e7
+				<< ")\talt(" << p4/1.0e2
+				<< ")" << std::endl;
+			break;
+
+		case BinComm::MSG_STATUS_TEXT:
+			commTest->comm.unpack_msg_status_text(commTest->severity,commTest->status);
+			std::cout << "message: status(" << int(commTest->severity)
+				<< ")\t" << commTest->status << std::endl;
+			break;
+
 		case BinComm::MSG_HEARTBEAT:
-			std::cout << "MSG_HEARTBEAT" << std::endl;
 			commTest->comm.unpack_msg_heartbeat(commTest->flightMode,commTest->timeStamp,
 					commTest->batteryVoltage,commTest->commandIndex);
-			std::cout << "\tflightMode: " << int(commTest->flightMode) << std::endl;
-			std::cout << "\tbatteryVoltage: " << commTest->batteryVoltage << std::endl;
+			std::cout << "heartbeat: flightMode: " << int(commTest->flightMode)
+				<< "\tbatteryVoltage: " << commTest->batteryVoltage << std::endl;
 			break;
 
 		case BinComm::MSG_ACKNOWLEDGE:
-			std::cout << "MSG_ACKNOWLEDGE" << std::endl;
+			uint8_t msgID, sum1, sum2;
+			commTest->comm.unpack_msg_acknowledge(msgID,sum1,sum2);
+			std::cout << "acknowledged: message(" << std::hex << int(msgID) << std::dec
+				<< ")\tsum1(" << int(sum1)
+				<< ")\tsum2(" << int(sum2)
+				<< ")" << std::endl;
 			break;
 
 		case BinComm::MSG_ATTITUDE:
-			std::cout << "MSG_ATTITUDE" << std::endl;
 			commTest->comm.unpack_msg_attitude(commTest->roll,commTest->pitch,commTest->yaw);
-						std::cout << "\troll, pitch, yaw:\t" << commTest->roll << "\t" << commTest->pitch 
-				<< "\t" << commTest->yaw << std::endl;
+			std::cout << "attitude: roll(" << commTest->roll 
+				<< ")\tpitch(" << commTest->pitch 
+				<< ")\tyaw(" << commTest->yaw << ")" 
+				<< std::endl;
 			break;
 
 		case BinComm::MSG_LOCATION:
-			std::cout << "MSG_LOCATION" << std::endl;
 			commTest->comm.unpack_msg_location(commTest->latitude,commTest->longitude,
-			commTest->altitude,commTest->groundSpeed,commTest->groundCourse,commTest->timeOfWeek);
-			std::cout << "\tlatitude, longitude, altitude:\t" << commTest->latitude/1e7 << "\t" 
-				<< commTest->longitude/1e7 << "\t" << commTest->altitude/100 << std::endl;
-			std::cout << "\tground speed, ground course, time of week:\t" << commTest->groundSpeed << "\t" 
-				<< commTest->groundCourse << "\t" << commTest->timeOfWeek << std::endl;
+				commTest->altitude,commTest->groundSpeed,commTest->groundCourse,commTest->timeOfWeek);
+			std::cout << "location: lat(" << commTest->latitude/1.0e7 
+				<< "),\tlon(" << commTest->longitude/1.0e7 
+				<< "),\talt(" << commTest->altitude/1.0e2
+				<< ")\n\t,ground speed(" << commTest->groundSpeed 
+				<< ")\t,ground course(" << commTest->groundCourse 
+				<< ")\t,time of week(" << commTest->timeOfWeek 
+				<< ")" << std::endl;
 			break;
 
 		case BinComm::MSG_RADIO_OUT:
 			std::cout << "MSG_RADIO_OUT" << std::endl;
 			uint16_t radio[8];
 			commTest->comm.unpack_msg_radio_out(radio);
-			std::cout << "\tradio:\t";
+			std::cout << "radio:\t";
 			for (int i=0;i<8;i++) std::cout << radio[i] << "\t";
 			std::cout << std::endl;
 			break;
@@ -124,25 +177,40 @@ int main (int argc, char const* argv[])
 	std::cout << "device: " << device << std::endl;
 	std::cout << "baud: " << baud << std::endl;
 	CommTest test(device,baud);
-	int i = 0;
+
+	
+	int fastPeriod=100, slowPeriod=20000, clockFast=millis(), clockSlow=millis();
+
 	while(1)
 	{
-		test.update();
-		//std::cout << "i: " << i << std::endl;
-		if (i >500)
+		int time = millis();
+
+		// fast loop
+		if (time-clockFast > fastPeriod)	
+		{
+			test.comm.update();
+			clockFast = time;
+		}
+
+		// slop loop
+		if (time-clockSlow > slowPeriod)
 		{
 			std::cout << "sending flightplan" << std::endl;
 			uint8_t action = 0; // execute immed. 1, insert in list 0
-			uint16_t length = 3;
+			uint16_t length = 10;
 			uint8_t commandID = 0x10;
-			for (uint16_t j=0;j<length;j++)
+			for (uint16_t i=0;i<length;i++)
 			{
-				test.comm.send_msg_command_upload(1,j,length,commandID,0,j,j,j);
+				if (i==0) commandID = 0x16; // takeoff
+				else if (i== length-1 ) commandID = 0x15; // land
+				else commandID = 0x10; // navigate to waypoint
+				std::cout << "\tuploading waypoint: " << i+1 << std::endl;
+				test.comm.send_msg_command_upload(action,i+1,length,commandID,0,i,i,i);
+				usleep(200000); // give some delay so buffer is not overloaded on micro
+				// can only take 128 bytes at a time
 			}
-			i = 0;
+			clockSlow = time;
 		}
-		i++;
-		usleep(10000);
 	}
 	return 0;
 }
