@@ -49,7 +49,7 @@ public:
 	CommTest(const std::string & device, long int baud) :
 		serial(device,baud),
 		stream(&serial),
-		comm(handlerTable,&stream), roll(), pitch(), yaw(),
+		comm(handlerTable,512,&stream), roll(), pitch(), yaw(),
 		longitude(), latitude(), altitude(), groundSpeed(),
 		groundCourse(), timeOfWeek(), flightMode(), timeStamp(),
 		batteryVoltage(), commandIndex()
@@ -152,11 +152,20 @@ void handler(void * arg, uint8_t messageId, uint8_t messageVersion, void * messa
 			break;
 
 		case BinComm::MSG_RADIO_OUT:
-			std::cout << "MSG_RADIO_OUT" << std::endl;
 			uint16_t radio[8];
 			commTest->comm.unpack_msg_radio_out(radio);
 			std::cout << "radio:\t";
 			for (int i=0;i<8;i++) std::cout << radio[i] << "\t";
+			std::cout << std::endl;
+			break;
+
+		case BinComm::MSG_SERVO_OUT:
+			int16_t servoRaw[8];
+			double servo[8];
+			commTest->comm.unpack_msg_servo_out(servoRaw);
+			for (int i=0;i<8;i++) servo[i] = servoRaw[i]/100.0;
+			std::cout << "servo:\t";
+			for (int i=0;i<8;i++) std::cout << servo[i] << "%\t";
 			std::cout << std::endl;
 			break;
 
@@ -179,7 +188,7 @@ int main (int argc, char const* argv[])
 	CommTest test(device,baud);
 
 	
-	int fastPeriod=100, slowPeriod=20000, clockFast=millis(), clockSlow=millis();
+	int fastPeriod=100, slowPeriod=10000, clockFast=millis(), clockSlow=millis();
 
 	while(1)
 	{
@@ -197,7 +206,7 @@ int main (int argc, char const* argv[])
 		{
 			std::cout << "sending flightplan" << std::endl;
 			uint8_t action = 0; // execute immed. 1, insert in list 0
-			uint16_t length = 10;
+			uint16_t length = 3;
 			uint8_t commandID = 0x10;
 			for (uint16_t i=0;i<length;i++)
 			{
@@ -206,8 +215,7 @@ int main (int argc, char const* argv[])
 				else commandID = 0x10; // navigate to waypoint
 				std::cout << "\tuploading waypoint: " << i+1 << std::endl;
 				test.comm.send_msg_command_upload(action,i+1,length,commandID,0,i,i,i);
-				usleep(200000); // give some delay so buffer is not overloaded on micro
-				// can only take 128 bytes at a time
+				// can only take 128 bytes at a time, delay before sending more than 3
 			}
 			clockSlow = time;
 		}
